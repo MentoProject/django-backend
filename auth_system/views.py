@@ -1,7 +1,5 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from django.template.loader import get_template
-from django.core.mail import EmailMessage
 from django.contrib.auth import get_user_model
 from auth_system.serializers import UserSeralizer
 from uuid import uuid4
@@ -12,27 +10,8 @@ from auth_system.email_handler import forget_password
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.authtoken.models import Token
 
-def send_email(reqeust):
-    url = 'http://127.0.0.1:8000/activate/4a0ca757-4ddf-4cc1-8774-47e1b4f5d3c7/'
-    ctx = {
-        'link':url
-    }
-    body = get_template('auth_system/send.html').render(ctx)
-    msg_body = """
-    <center><h2>Welcome to Mento! </h2></center>
-    <br><br>
-    <h3>Kindl click on the below link to activate the Account <h3>
-    <a href="{}">Activate Account </a>
-    """.format(url)
 
-    msg = EmailMessage('Activate your Mento Account',body
-    ,'gitspacematrix.com',['md.rehbar@outlook.com']
-    )
-    msg.content_subtype = "html"
-    msg.send()
-
-    return HttpResponse("Mail Send Successfully")
-
+#For actavating the account
 def activate_account(request,uuid):
     try:
         obj = get_user_model().objects.get(u_id=uuid)
@@ -43,14 +22,11 @@ def activate_account(request,uuid):
     except:
         return HttpResponse("Bad Request")
 
-def home(request):
-    return render(request,'auth_system/send.html',{})
-
-
 class Register(generics.CreateAPIView):
     serializer_class = UserSeralizer
 
 
+#to send the password for reseting
 @api_view(['POST'])
 def forget_passowrd(request):
     data = request.data.get('email',None)
@@ -61,6 +37,7 @@ def forget_passowrd(request):
     except ObjectDoesNotExist:
         return Response({'email':'not-sent'})
 
+#chaning the password via online method
 def change_password_online(request):
     if request.method == "POST":
         token = request.POST.get('token',None)
@@ -77,6 +54,9 @@ def change_password_online(request):
             return HttpResponse("Unable to change the password")
     return render(request,'auth_system/reset_onlie_password.html',{})
 
+
+
+#for reseting password
 @api_view(['POST'])
 def password_reset(request):
 
